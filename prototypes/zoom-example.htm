@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>zoom example</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="" />
+    <style>
+      #img-container {
+        max-width: 400px;
+        max-height: 400px;
+        overflow: hidden;
+        border: 1em dashed red;
+      }
+      img {
+        transition: transform 0.3s ease;
+        max-width: 100%;
+        max-height: 100%;
+        position: relative;
+      }
+      img:hover {
+        cursor: move;
+      }
+    </style>
+  </head>
+  <body>
+    <!--[if lt IE 7]>
+      <p class="browsehappy">
+        You are using an <strong>outdated</strong> browser. Please
+        <a href="#">upgrade your browser</a> to improve your experience.
+      </p>
+    <![endif]-->
+
+    <h1>image zoom example</h1>
+    <div>
+      pretend toolbar:
+      <button onclick="javascript:zoomIn()">zoom in</button>
+      <button onclick="javascript:zoomOut()">zoom out</button>
+      <button onclick="javascript:reset()">reset</button>
+    </div>
+
+    <div style="margin-top: 1em;">
+        pretend frame
+    </div>
+    <div id="img-container">
+      <img src="kauai.png" id="image" />
+    </div>
+
+    <script>
+        var isImageMoving = false;
+        var mouseDown = { x: 0, y: 0, left: 0, top: 0};
+        var image = document.getElementById("image");
+        var floatRegExp = /[-+]?[0-9]*\.?[0-9]+/;
+
+        function moveImage(mouseEvent) {
+            console.log("moveImage");
+            
+            var left = mouseEvent.clientX - mouseDown.x;
+            var top = mouseEvent.clientY - mouseDown.y;
+
+            console.log(`event x: ${mouseEvent.clientX} - event y: ${mouseEvent.clientY}`);
+            console.log(`down x: ${mouseDown.x}, down y: ${mouseDown.y}`);
+
+            image.style.left = (mouseDown.left + left) + "px";
+            image.style.top = (mouseDown.top + top) + "px";
+        }
+
+        function mouseUp(mouseEvent) {
+            console.log("mouseUp");
+            document.removeEventListener("mousemove", moveImage);
+            isImageMoving = false;
+        }
+
+        image.addEventListener("mousedown", function(mouseDownEvent) {
+            mouseDownEvent.preventDefault();
+
+            var left = parseInt(image.style.left);
+            mouseDown.left = isNaN(left) ? 0 : left;
+
+            var top = parseInt(image.style.top);
+            mouseDown.top = isNaN(top) ? 0 : top;
+
+            mouseDown.x = mouseDownEvent.clientX;
+            mouseDown.y = mouseDownEvent.clientY;
+
+            console.log("mouseDown");
+            console.log("isImageMoving: " + isImageMoving);
+
+            if(isImageMoving) {
+                document.removeEventListener("mousemove", moveImage);
+                isImageMoving = !isImageMoving;
+                return;
+            }
+
+            isImageMoving = !isImageMoving;
+            document.addEventListener("mousemove", moveImage, false);
+            document.addEventListener("mouseup", mouseUp, false);
+        }, false);
+
+        function zoomIn() {
+            var scale = getImageTransformScale();
+            scale = scale + 0.5;
+
+            image.style.transform = `scale(${scale})`;
+        }
+        
+        function zoomOut() {
+            var scale = getImageTransformScale();
+            scale = scale - 0.5;
+
+            image.style.transform = `scale(${scale})`;
+        }
+
+        function reset() {
+            image.style.transform = "scale(1)";
+            image.style.left = 0;
+            image.style.top = 0;
+        }
+
+        function getImageTransformScale() {
+            if(image.style.transform === "") {
+                return 1;
+            }
+
+            return parseFloat(floatRegExp.exec(image.style.transform)[0]);
+        }
+    </script>
+  </body>
+</html>
