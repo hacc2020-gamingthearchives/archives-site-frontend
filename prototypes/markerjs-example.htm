@@ -12,7 +12,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="">
 
-        <script src="https://unpkg.com/markerjs"></script>
+        <!-- <script src="https://unpkg.com/markerjs"></script> -->
+        <script src="markerjs.umd.js"></script>
         <style>
             #image {
                 width: 100%;
@@ -30,6 +31,8 @@
             pretend toolbar: 
             <button onclick="javascript:addHighlight()">add highlight</button>
             <button onclick="javascript:saveState()">save state</button>
+            <button onclick="javascript:resetState()">reset state</button>
+            <button onclick="javascript:loadState()">load previous state</button>
         </div>
         
         <div>
@@ -38,16 +41,26 @@
         
         <div>
             <hr/>
-            save state info: <pre id="save-state"></pre>
+            <a href="#save-state">
+                save state info:
+            </a> 
+            <pre id="save-state"></pre>
             <hr/>
         </div>
 
         <script>
-            var mark = new markerjs.MarkerArea(document.getElementById('image'));
-            mark.show(function(dataUrl) {
-                var res = document.getElementById("resultImage");
-                res.src = dataUrl;
-            });
+            var image = document.getElementById("image");
+            var mark = null;
+
+            window.onload = function(e) {
+                console.log(`width: ${image.clientWidth}, height: ${image.clientHeight}`);
+
+                mark = new markerjs.MarkerArea(image, {showUi: false});
+                mark.show(function(dataUrl) {
+                    var res = document.getElementById("resultImage");
+                    res.src = dataUrl;
+                });
+            }
 
             function addHighlight() {
                 mark.addMarker(markerjs.HighlightMarker);
@@ -60,7 +73,19 @@
                 var text = document.getElementById("save-state");
                 text.innerText = JSON.stringify(markerAreaState, null, 2);
 
-                text.focus();
+                window.location.hash = "#save-state";
+                localStorage.setItem("markerjs", text.innerText);
+            }
+
+            function resetState() {
+                mark.resetState();
+            }
+
+            function loadState() {
+                var json = localStorage.getItem("markerjs");
+                var saveState = JSON.parse(json);
+
+                mark.restoreSavedState(saveState);
             }
         </script>
     </body>
